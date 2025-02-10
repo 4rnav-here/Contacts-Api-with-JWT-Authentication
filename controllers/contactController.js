@@ -1,17 +1,29 @@
 const asyncHandler = require("express-async-handler")
 const Contacts = require("../models/contactModel")
 
+// const newContact = Contacts.create({
+//     name: "John Doe",
+//     email: "johndoe@example.com",
+//     phone_number: "1234567890"
+// });
+
 const getContacts = asyncHandler(async (req, res) => {
-    res.status(200).json({messgae: "Get all contacts"});
-})
+    const contacts = await Contacts.find();
+    res.status(200).json(contacts);
+});
 
 const createContacts = asyncHandler(async (req, res) => {
-    console.log("The required contact body is", req.body)
-    const {name, phone_number} = req.body;
-    if(!name || !phone_number){
+    const {name, email, phone_number} = req.body;
+    if(!name || !phone_number || !email){
         throw new Error("Mandatory fields missing");
     }
-    res.status(200).json({messgae: "Create a contact"});
+    console.log("The required contact body is", req.body)
+    const contact = await Contacts.create({
+        name,
+        email,
+        phone_number,
+    });
+    res.status(201).json({contact});
 })
 
 const getContactAt = asyncHandler(async (req, res) => {
