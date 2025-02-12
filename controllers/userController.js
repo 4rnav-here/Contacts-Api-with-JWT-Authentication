@@ -12,7 +12,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const userAvailable = await User.findOne({email})
     if(userAvailable){
         res.status(400)
-        throw new Error("Account already registered")
+        throw new Error("Email already registered")
     }
     const hashedPassword = await bcrypt.hash(password,10)
     const user = await User.create({
@@ -20,7 +20,8 @@ const registerUser = asyncHandler(async (req, res) => {
         email,
         password: hashedPassword,
     });
-    console.log(`User created ${user}`)
+    
+    console.log(`User created ${user}`);
     if(user){
         res.status(201).json({_id:user.id, email:user.email});
     }
@@ -28,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error("Data not valid")
     }
-
+    res.json({message:"Register the user"});
 })
 
 const loginUser = asyncHandler(async  (req, res) =>{
@@ -39,14 +40,24 @@ const loginUser = asyncHandler(async  (req, res) =>{
     }
 
     const user = await User.findOne({email})
-    if()
-
-    res.json({ message: "Logged in successfully"})
+    if(user && (await bcrypt.compare(password, user.password))){
+        const accessToken = jwt.sign({
+            user:{
+                username: user.username,
+                email: user.email,
+                id:user.id
+            }
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn : "5m" }, 
+        )
+    res.json({ accessToken: accessToken})
+    }
 })
 
 const currentUser = asyncHandler(async(req, res) =>{
-    res.json({ message: "Current user details"})
-})
+    res.json(req.user)
+});
 
 module.exports ={
     registerUser,
